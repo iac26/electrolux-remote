@@ -150,10 +150,13 @@ fn main() -> ! {
     let mut buffer = [0u8; 512];
     let di = SpiInterface::new(spi_dev, dc, &mut buffer);
     let mut init_delay = Delay::new();
-    // Landscape: 240x135, rotated 90°, offset swapped. Verify on hardware (see plan notes).
+    // Landscape via Deg90. mipidsi takes the NATIVE panel placement (135x240 @ 52,40 — same as
+    // the portrait `main.rs`) and derives the rotated address-window offset itself; the logical
+    // drawable area becomes 240x135. (Passing pre-rotated 240x135 @ 40,52 trips mipidsi's
+    // `width + offset_x <= framebuffer_width` assertion, since the framebuffer stays 240x320.)
     let mut display = Builder::new(ST7789, di)
-        .display_size(240, 135)
-        .display_offset(40, 52)
+        .display_size(135, 240)
+        .display_offset(52, 40)
         .orientation(Orientation::new().rotate(Rotation::Deg90))
         .reset_pin(rst)
         .init(&mut init_delay)
