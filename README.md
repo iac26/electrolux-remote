@@ -2,12 +2,12 @@
 
 M5StickC Plus2 firmware: press **Button A** to transmit the Electrolux AC **OFF** frame
 over the built-in IR LED (GPIO19). Built on the [PaperUI](https://github.com/iac26/PaperUI)
-Rust framework (engine + widgets + DefaultTheme + embedded-graphics adapter + the
-`paperui-tft` button backend), plus the app-local `electrolux-ir` protocol crate and the
-RMT `IrTx` transmitter (`src/ir.rs`).
+Rust framework (`paperui` engine + widgets + the embedded-graphics adapter), plus the
+`paperui-tft` board addon for this device — its `TftTheme` look and `ButtonReader` input —
+the app-local `electrolux-ir` protocol crate, and the RMT `IrTx` transmitter (`src/ir.rs`).
 
-> Depends on PaperUI via a path dependency to a sibling `../PaperUI` checkout. Once PaperUI
-> is pushed, switch the `paperui-*` deps in `Cargo.toml` to a git dependency.
+> Depends on PaperUI via git deps (`github.com/iac26/PaperUI`); run `cargo update -p paperui
+> -p paperui-tft` to pull the latest framework commit.
 
 ## Build
 ```bash

@@ -38,11 +38,10 @@ use mipidsi::models::ST7789;
 use mipidsi::Builder;
 
 use paperui::{
-    Button, ButtonEvent, ButtonId, Canvas, Color, DefaultTheme, DrawCtx, EgCanvas, Rect,
-    UpdateHint, Widget,
+    Button, ButtonEvent, ButtonId, Canvas, Color, DrawCtx, EgCanvas, Rect, UpdateHint, Widget,
 };
 
-use paperui_tft::ButtonReader;
+use paperui_tft::{ButtonReader, TftTheme};
 
 use electrolux_ir::{build_off_frame, encode_frame};
 
@@ -90,7 +89,7 @@ fn main() -> ! {
         .unwrap();
 
     // Draw the one-button UI through the PaperUI engine/theme/canvas stack.
-    let theme = DefaultTheme;
+    let theme = TftTheme;
     let btn = Button::new("AC OFF");
     {
         let mut canvas = EgCanvas::new(&mut display);
@@ -98,7 +97,7 @@ fn main() -> ! {
         let mut hint = UpdateHint::None;
         let bounds = Rect::new(18, 100, 100, 40);
         let mut ctx = DrawCtx::new(&mut canvas, bounds, true, &mut hint);
-        Widget::<EgCanvas<_>, DefaultTheme>::draw(&btn, &mut ctx, &theme);
+        Widget::<EgCanvas<_>, TftTheme>::draw(&btn, &mut ctx, &theme);
     }
 
     // IR transmitter on GPIO19 via the RMT peripheral (80 MHz source on esp32).
