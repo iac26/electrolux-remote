@@ -48,6 +48,9 @@ use electrolux_ir::{build_off_frame, encode_frame};
 mod ir;
 use ir::IrTx;
 
+// ESP-IDF app descriptor — the bootloader/espflash require it to recognize & boot the image.
+esp_bootloader_esp_idf::esp_app_desc!();
+
 #[main]
 fn main() -> ! {
     let p = esp_hal::init(esp_hal::Config::default());

@@ -34,6 +34,9 @@ use electrolux_ir::{build_off_frame, encode_frame, Pulse, PULSE_LEN};
 mod ir;
 use ir::IrTx;
 
+// ESP-IDF app descriptor — the bootloader/espflash require it to recognize & boot the image.
+esp_bootloader_esp_idf::esp_app_desc!();
+
 /// The device IO layer. As an `EventSource` it (1) emits focus/activate from the two buttons
 /// (active-low press-edge detection) and (2) performs the queued IR send when the UI's `fire`
 /// signal is set. It owns the (non-'static, large) IR peripherals so the reactive handler only

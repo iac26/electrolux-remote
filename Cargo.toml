@@ -27,6 +27,7 @@ mipidsi = "0.9"
 embedded-hal-bus = "0.3"
 embedded-hal = "1.0"
 heapless = "0.8"
+esp-bootloader-esp-idf = { version = "0.5.0", features = ["esp32"] }
 
 [profile.release]
 opt-level = "s"
