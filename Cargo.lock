@@ -929,6 +929,7 @@ dependencies = [
 [[package]]
 name = "paperui-core"
 version = "0.1.0"
+source = "git+https://github.com/iac26/PaperUI#cd0927c834c236da84cd33aefa4241608cec2bec"
 dependencies = [
  "heapless 0.8.0",
 ]
@@ -936,6 +937,7 @@ dependencies = [
 [[package]]
 name = "paperui-eg"
 version = "0.1.0"
+source = "git+https://github.com/iac26/PaperUI#cd0927c834c236da84cd33aefa4241608cec2bec"
 dependencies = [
  "embedded-graphics",
  "paperui-core",
@@ -944,6 +946,7 @@ dependencies = [
 [[package]]
 name = "paperui-tft"
 version = "0.1.0"
+source = "git+https://github.com/iac26/PaperUI#cd0927c834c236da84cd33aefa4241608cec2bec"
 dependencies = [
  "esp-hal",
  "paperui-core",
@@ -952,6 +955,7 @@ dependencies = [
 [[package]]
 name = "paperui-theme-tft"
 version = "0.1.0"
+source = "git+https://github.com/iac26/PaperUI#cd0927c834c236da84cd33aefa4241608cec2bec"
 dependencies = [
  "paperui-core",
  "paperui-widgets",
@@ -960,6 +964,7 @@ dependencies = [
 [[package]]
 name = "paperui-widgets"
 version = "0.1.0"
+source = "git+https://github.com/iac26/PaperUI#cd0927c834c236da84cd33aefa4241608cec2bec"
 dependencies = [
  "paperui-core",
 ]

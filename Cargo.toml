@@ -11,15 +11,12 @@ path = "src/main.rs"
 members = ["crates/electrolux-ir"]
 
 [dependencies]
-# --- PaperUI framework (separate repo) ---
-# Path deps for local dev against a sibling ../PaperUI checkout. After PaperUI is
-# pushed, switch these to a git dependency, e.g.:
-#   paperui-core = { git = "https://github.com/iac26/PaperUI" }
-paperui-core      = { path = "../PaperUI/crates/paperui-core" }
-paperui-widgets   = { path = "../PaperUI/crates/paperui-widgets" }
-paperui-theme-tft = { path = "../PaperUI/crates/paperui-theme-tft" }
-paperui-eg        = { path = "../PaperUI/crates/paperui-eg" }
-paperui-tft       = { path = "../PaperUI/crates/paperui-tft" }
+# --- PaperUI framework (separate repo, github.com/iac26/PaperUI) ---
+paperui-core      = { git = "https://github.com/iac26/PaperUI" }
+paperui-widgets   = { git = "https://github.com/iac26/PaperUI" }
+paperui-theme-tft = { git = "https://github.com/iac26/PaperUI" }
+paperui-eg        = { git = "https://github.com/iac26/PaperUI" }
+paperui-tft       = { git = "https://github.com/iac26/PaperUI" }
 
 # --- App-local: the Electrolux AC IR protocol ---
 electrolux-ir = { path = "crates/electrolux-ir" }
