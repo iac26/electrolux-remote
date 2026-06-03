@@ -1,0 +1,39 @@
+[package]
+name = "electrolux-remote"
+version = "0.1.0"
+edition = "2021"
+
+[[bin]]
+name = "electrolux-remote"
+path = "src/main.rs"
+
+[workspace]
+members = ["crates/electrolux-ir"]
+
+[dependencies]
+# --- PaperUI framework (separate repo) ---
+# Path deps for local dev against a sibling ../PaperUI checkout. After PaperUI is
+# pushed, switch these to a git dependency, e.g.:
+#   paperui-core = { git = "https://github.com/iac26/PaperUI" }
+paperui-core      = { path = "../PaperUI/crates/paperui-core" }
+paperui-widgets   = { path = "../PaperUI/crates/paperui-widgets" }
+paperui-theme-tft = { path = "../PaperUI/crates/paperui-theme-tft" }
+paperui-eg        = { path = "../PaperUI/crates/paperui-eg" }
+paperui-tft       = { path = "../PaperUI/crates/paperui-tft" }
+
+# --- App-local: the Electrolux AC IR protocol ---
+electrolux-ir = { path = "crates/electrolux-ir" }
+
+# --- ESP32 device deps ---
+esp-hal = { version = "1.1", features = ["esp32", "unstable"] }
+esp-backtrace = { version = "0.17", features = ["esp32", "panic-handler", "println"] }
+esp-println = { version = "0.15", features = ["esp32"] }
+embedded-graphics = "0.8"
+mipidsi = "0.9"
+embedded-hal-bus = "0.3"
+embedded-hal = "1.0"
+heapless = "0.8"
+
+[profile.release]
+opt-level = "s"
+lto = "fat"
