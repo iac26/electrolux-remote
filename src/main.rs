@@ -37,10 +37,10 @@ use mipidsi::interface::SpiInterface;
 use mipidsi::models::ST7789;
 use mipidsi::Builder;
 
-use paperui_core::{ButtonEvent, ButtonId, Canvas, Color, DrawCtx, Rect, UpdateHint, Widget};
-use paperui_eg::EgCanvas;
-use paperui_theme_tft::DefaultTheme;
-use paperui_widgets::Button;
+use paperui::{
+    Button, ButtonEvent, ButtonId, Canvas, Color, DefaultTheme, DrawCtx, EgCanvas, Rect,
+    UpdateHint, Widget,
+};
 
 use paperui_tft::ButtonReader;
 

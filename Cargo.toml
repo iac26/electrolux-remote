@@ -12,11 +12,8 @@ members = ["crates/electrolux-ir"]
 
 [dependencies]
 # --- PaperUI framework (separate repo, github.com/iac26/PaperUI) ---
-paperui-core      = { git = "https://github.com/iac26/PaperUI" }
-paperui-widgets   = { git = "https://github.com/iac26/PaperUI" }
-paperui-theme-tft = { git = "https://github.com/iac26/PaperUI" }
-paperui-eg        = { git = "https://github.com/iac26/PaperUI" }
-paperui-tft       = { git = "https://github.com/iac26/PaperUI" }
+paperui     = { git = "https://github.com/iac26/PaperUI", features = ["eg"] }
+paperui-tft = { git = "https://github.com/iac26/PaperUI" }
 
 # --- App-local: the Electrolux AC IR protocol ---
 electrolux-ir = { path = "crates/electrolux-ir" }
