@@ -55,6 +55,11 @@ esp_bootloader_esp_idf::esp_app_desc!();
 fn main() -> ! {
     let p = esp_hal::init(esp_hal::Config::default());
 
+    // Latch power so the board stays on when USB is unplugged. The Plus2 dropped the AXP192
+    // PMIC and instead holds power via GPIO4 (HOLD); without driving it high the device runs
+    // only while USB supplies power and dies the moment the cable is removed.
+    let _hold = Output::new(p.GPIO4, Level::High, OutputConfig::default());
+
     // Backlight on.
     let _bl = Output::new(p.GPIO27, Level::High, OutputConfig::default());
 
