@@ -157,7 +157,7 @@ fn main() -> ! {
     let mut display = Builder::new(ST7789, di)
         .display_size(135, 240)
         .display_offset(52, 40)
-        .orientation(Orientation::new().rotate(Rotation::Deg90))
+        .orientation(Orientation::new().rotate(Rotation::Deg270))
         .reset_pin(rst)
         .init(&mut init_delay)
         .unwrap();
