@@ -32,14 +32,57 @@ pub const fn reverse_bits(mut b: u8) -> u8 {
     r
 }
 
-/// Build the 13-byte OFF frame (power_on=false, fan=low, swing=off, temp=24).
-pub fn build_off_frame() -> [u8; FRAME_LEN] {
+/// AC operating mode (byte 6 when powered on).
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub enum Mode { Auto, Cool, Heat, Dry, Fan }
+
+/// Fan speed (byte 4).
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub enum Fan { Auto, Low, Mid, High }
+
+/// The full desired AC state. `temp` is in °C and clamped to 16..=32 by `build_frame`.
+/// Copy + PartialEq so it can be stored directly in a PaperUI `Signal`.
+#[derive(Clone, Copy, PartialEq, Eq, Debug)]
+pub struct AcState {
+    pub power: bool,
+    pub mode: Mode,
+    pub temp: i8,
+    pub fan: Fan,
+    pub swing: bool,
+}
+
+/// Next mode in the UI cycle Cool→Heat→Dry→Fan→Auto→Cool.
+pub fn next_mode(m: Mode) -> Mode {
+    match m { Mode::Cool => Mode::Heat, Mode::Heat => Mode::Dry, Mode::Dry => Mode::Fan, Mode::Fan => Mode::Auto, Mode::Auto => Mode::Cool }
+}
+/// Next fan speed in the UI cycle Auto→Low→Mid→High→Auto.
+pub fn next_fan(f: Fan) -> Fan {
+    match f { Fan::Auto => Fan::Low, Fan::Low => Fan::Mid, Fan::Mid => Fan::High, Fan::High => Fan::Auto }
+}
+
+/// Build the 13-byte frame for a full AC state (mirrors the Python `build_packet`).
+pub fn build_frame(s: AcState) -> [u8; FRAME_LEN] {
     let mut arr = [0u8; FRAME_LEN];
-    arr[0] = 0b1100_0011; // 0xC3 constant header
-    arr[1] = 0b1110_0000; // swing off
-    let t: u8 = 24 - 8; // temp field = 16
+    arr[0] = 0b1100_0011; // constant header 0xC3
+    arr[1] = if s.swing { 0x00 } else { 0xE0 }; // swing on=000 / off=111 in the top 3 bits
+    let t = (s.temp.clamp(16, 32) - 8) as u8;
     arr[1] |= reverse_bits(t) >> 3;
-    arr[4] = 0b0000_0110; // fan = low
+    arr[4] = match s.fan {
+        Fan::Auto => 0b0000_0101,
+        Fan::Low => 0b0000_0110,
+        Fan::Mid => 0b0000_0010,
+        Fan::High => 0b0000_0100,
+    };
+    if s.power {
+        arr[6] = match s.mode {
+            Mode::Auto => 0b000,
+            Mode::Cool => 0b100,
+            Mode::Heat => 0b001,
+            Mode::Fan => 0b011,
+            Mode::Dry => 0b010,
+        };
+        arr[9] = 0b0000_0100; // on/off bit = ON
+    }
     let mut sum: u32 = 0;
     let mut i = 0;
     while i < 12 {
@@ -48,6 +91,11 @@ pub fn build_off_frame() -> [u8; FRAME_LEN] {
     }
     arr[12] = reverse_bits((sum & 0xFF) as u8);
     arr
+}
+
+/// The verified OFF frame (power off, mode auto, fan low, swing off, temp 24).
+pub fn build_off_frame() -> [u8; FRAME_LEN] {
+    build_frame(AcState { power: false, mode: Mode::Auto, temp: 24, fan: Fan::Low, swing: false })
 }
 
 /// Encode a 13-byte frame into the raw mark/space pulse list (MSB-first per byte).
@@ -116,5 +164,83 @@ mod tests {
         assert_eq!(pulses[3], Pulse { carrier_on: false, micros: ONE_SPACE });
         assert_eq!(pulses[5], Pulse { carrier_on: false, micros: ONE_SPACE });
         assert_eq!(pulses[7], Pulse { carrier_on: false, micros: ZERO_SPACE });
+    }
+
+    #[test]
+    fn build_frame_off_matches_off_helper() {
+        let s = AcState { power: false, mode: Mode::Auto, temp: 24, fan: Fan::Low, swing: false };
+        assert_eq!(build_frame(s), build_off_frame());
+        assert_eq!(
+            build_frame(s),
+            [0xC3, 0xE1, 0x00, 0x00, 0x06, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x55]
+        );
+    }
+
+    #[test]
+    fn power_on_sets_mode_byte_and_onoff_byte() {
+        for (mode, code) in [
+            (Mode::Auto, 0b000u8), (Mode::Cool, 0b100), (Mode::Heat, 0b001),
+            (Mode::Fan, 0b011), (Mode::Dry, 0b010),
+        ] {
+            let f = build_frame(AcState { power: true, mode, temp: 24, fan: Fan::Low, swing: false });
+            assert_eq!(f[6], code, "mode byte for {:?}", mode);
+            assert_eq!(f[9], 0b0000_0100, "on/off byte ON for {:?}", mode);
+        }
+    }
+
+    #[test]
+    fn power_off_zeroes_mode_and_onoff() {
+        let f = build_frame(AcState { power: false, mode: Mode::Cool, temp: 24, fan: Fan::High, swing: false });
+        assert_eq!(f[6], 0);
+        assert_eq!(f[9], 0);
+    }
+
+    #[test]
+    fn fan_field_maps_each_speed() {
+        for (fan, code) in [
+            (Fan::Auto, 0b0000_0101u8), (Fan::Low, 0b0000_0110),
+            (Fan::Mid, 0b0000_0010), (Fan::High, 0b0000_0100),
+        ] {
+            let f = build_frame(AcState { power: true, mode: Mode::Cool, temp: 24, fan, swing: false });
+            assert_eq!(f[4], code, "fan byte for {:?}", fan);
+        }
+    }
+
+    #[test]
+    fn temp_field_and_clamp() {
+        let b = |t: i8| build_frame(AcState { power: true, mode: Mode::Cool, temp: t, fan: Fan::Low, swing: false })[1];
+        assert_eq!(b(16), 0xE2);
+        assert_eq!(b(24), 0xE1);
+        assert_eq!(b(32), 0xE3);
+        assert_eq!(b(40), 0xE3, "clamps high to 32");
+        assert_eq!(b(10), 0xE2, "clamps low to 16");
+    }
+
+    #[test]
+    fn swing_clears_high_three_bits_of_byte1() {
+        let on = build_frame(AcState { power: true, mode: Mode::Cool, temp: 24, fan: Fan::Low, swing: true });
+        assert_eq!(on[1] & 0b1110_0000, 0, "swing on => top 3 bits of arr[1] are 0");
+        let off = build_frame(AcState { power: true, mode: Mode::Cool, temp: 24, fan: Fan::Low, swing: false });
+        assert_eq!(off[1] & 0b1110_0000, 0b1110_0000, "swing off => top 3 bits set");
+    }
+
+    #[test]
+    fn checksum_is_reverse_bits_sum() {
+        let f = build_frame(AcState { power: true, mode: Mode::Heat, temp: 30, fan: Fan::High, swing: true });
+        let sum: u32 = f[..12].iter().map(|&b| reverse_bits(b) as u32).sum();
+        assert_eq!(reverse_bits((sum & 0xFF) as u8), f[12]);
+    }
+
+    #[test]
+    fn mode_and_fan_cycle_order() {
+        assert_eq!(next_mode(Mode::Cool), Mode::Heat);
+        assert_eq!(next_mode(Mode::Heat), Mode::Dry);
+        assert_eq!(next_mode(Mode::Dry), Mode::Fan);
+        assert_eq!(next_mode(Mode::Fan), Mode::Auto);
+        assert_eq!(next_mode(Mode::Auto), Mode::Cool);
+        assert_eq!(next_fan(Fan::Auto), Fan::Low);
+        assert_eq!(next_fan(Fan::Low), Fan::Mid);
+        assert_eq!(next_fan(Fan::Mid), Fan::High);
+        assert_eq!(next_fan(Fan::High), Fan::Auto);
     }
 }
