@@ -926,8 +926,9 @@ dependencies = [
 [[package]]
 name = "paperui"
 version = "0.1.0"
-source = "git+https://github.com/iac26/PaperUI#a988835133a4ef94178643974e338da2a69da7e1"
+source = "git+https://github.com/iac26/PaperUI#2f5f2ff2738da6e34365e582dec45eb217448984"
 dependencies = [
+ "critical-section",
  "embedded-graphics",
  "heapless 0.8.0",
 ]
@@ -935,7 +936,7 @@ dependencies = [
 [[package]]
 name = "paperui-tft"
 version = "0.1.0"
-source = "git+https://github.com/iac26/PaperUI#a988835133a4ef94178643974e338da2a69da7e1"
+source = "git+https://github.com/iac26/PaperUI#2f5f2ff2738da6e34365e582dec45eb217448984"
 dependencies = [
  "esp-hal",
  "paperui",
